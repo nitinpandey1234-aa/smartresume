@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Responsive Resume Builder</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f5f5f5;
+    }
+    h1 {
+      text-align: center;
+      color: #222;
+    }
+    .container {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    form, .resume {
+      flex: 1 1 45%;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      min-width: 320px;
+    }
+    form h2 {
+      margin-bottom: 10px;
+      color: #007bff;
+    }
+    form input, form textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px 5px 0 0;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    #resumeOutput h2 {
+      margin: 5px 0;
+      color: #007bff;
+    }
+    #resumeOutput h3 {
+      margin-top: 12px;
+      color: #444;
+    }
+    #resumeOutput p, #resumeOutput ul {
+      margin: 4px 0 8px;
+    }
+    ul {
+      padding-left: 18px;
+    }
+
+    /* ✅ Responsive Design */
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      form, .resume {
+        flex: 1 1 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Responsive Resume Builder</h1>
+  <div class="container">
+    <!-- Input Form -->
+    <form id="resumeForm">
+      <h2>Enter Your Details</h2>
+
+      <input type="text" id="name" placeholder="Full Name" required>
+      <input type="email" id="email" placeholder="Email" required>
+      <input type="text" id="phone" placeholder="Phone Number" required>
+
+      <textarea id="summary" placeholder="Professional Summary"></textarea>
+      <textarea id="education" placeholder="Education Details"></textarea>
+      <textarea id="skills" placeholder="Skills (comma separated)"></textarea>
+      <textarea id="experience" placeholder="Work Experience"></textarea>
+      <textarea id="projects" placeholder="Projects (comma separated)"></textarea>
+      <textarea id="strengths" placeholder="Strengths (comma separated)"></textarea>
+
+      <button type="button" onclick="generateResume()">Generate Resume</button>
+      <button type="button" onclick="downloadPDF()">Download PDF</button>
+    </form>
+
+    <!-- Resume Output -->
+    <div class="resume" id="resumeOutput">
+      <h2>Your Resume Will Appear Here</h2>
+      <p>Fill out the form and click <b>Generate Resume</b>.</p>
+    </div>
+  </div>
+
+  <!-- ✅ jsPDF + html2canvas libraries (safe HTTPS) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <script>
+    function generateResume() {
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const phone = document.getElementById("phone").value;
+      const summary = document.getElementById("summary").value;
+      const education = document.getElementById("education").value;
+      const skills = document.getElementById("skills").value.split(",");
+      const experience = document.getElementById("experience").value;
+      const projects = document.getElementById("projects").value.split(",");
+      const strengths = document.getElementById("strengths").value.split(",");
+
+      const resumeHTML = `
+        <h2>${name}</h2>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Phone:</strong> ${phone}</p>
+
+        <h3>Professional Summary</h3>
+        <p>${summary}</p>
+
+        <h3>Education</h3>
+        <p>${education}</p>
+
+        <h3>Skills</h3>
+        <ul>${skills.filter(s => s.trim() !== "").map(skill => `<li>${skill.trim()}</li>`).join("")}</ul>
+
+        <h3>Work Experience</h3>
+        <p>${experience}</p>
+
+        <h3>Projects</h3>
+        <ul>${projects.filter(p => p.trim() !== "").map(project => `<li>${project.trim()}</li>`).join("")}</ul>
+
+        <h3>Strengths</h3>
+        <ul>${strengths.filter(st => st.trim() !== "").map(strength => `<li>${strength.trim()}</li>`).join("")}</ul>
+      `;
+
+      document.getElementById("resumeOutput").innerHTML = resumeHTML;
+    }
+
+    async function downloadPDF() {
+      const resume = document.getElementById("resumeOutput");
+      const canvas = await html2canvas(resume, { scale: 2 });
+      const imgData = canvas.toDataURL("image/png");
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF("p", "mm", "a4");
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save("resume.pdf");
+    }
+  </script>
+</body>
+</html>
